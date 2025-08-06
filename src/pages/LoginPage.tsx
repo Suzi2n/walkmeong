@@ -1,8 +1,9 @@
-import { BiSolidMessageRounded } from "react-icons/bi";
-import { FaApple } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { BiSolidMessageRounded } from 'react-icons/bi';
+import { FaApple } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 declare global {
   interface Window {
@@ -16,7 +17,7 @@ const LoginPage = () => {
   useEffect(() => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init(import.meta.env.VITE_KAKAO_JS_KEY);
-      console.log("✅ Kakao SDK Initialized");
+      console.log('✅ Kakao SDK Initialized');
     }
   }, []);
 
@@ -24,23 +25,39 @@ const LoginPage = () => {
     const Kakao = window.Kakao;
 
     Kakao.Auth.login({
-      scope: "profile_nickname",
-      success: function (authObj: any) {
-        console.log("✅ Kakao 로그인 성공", authObj);
+      scope: 'profile_nickname',
 
-        Kakao.API.request({
-          url: "/v2/user/me",
-          success: function (res: any) {
-            console.log("👤 사용자 정보:", res);
-            navigate("/agree_ment"); // ✅ React Router 방식으로 이동
+      success: function (authObj: any) {
+        console.log('✅ Kakao 로그인 성공', authObj);
+
+        // access token만 백엔드로 전송
+        fetch('https://walkmeong.site/api/v1/auth/kakao', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authObj.access_token}`, // 여기에 accessToken 담기
           },
-          fail: function (err: any) {
-            console.error("❌ 사용자 정보 요청 실패", err);
-          },
-        });
+        })
+          .then((res) => {
+            if (!res.ok) {
+              return res.text().then((text) => {
+                console.error('❌ 응답 내용:', text); // 응답 전문 보기
+                throw new Error('❌ 백엔드 로그인 실패');
+              });
+            }
+            return res.json();
+          })
+          .then((data) => {
+            console.log('🎉 백엔드 응답:', data);
+            localStorage.setItem('token', data.token); // 예시: JWT 저장
+            navigate('/agree_ment');
+          })
+          .catch((err) => {
+            console.error('❌ 백엔드 요청 실패', err);
+          });
       },
       fail: function (err: any) {
-        console.error("❌ Kakao 로그인 실패", err);
+        console.error('❌ Kakao 로그인 실패', err);
       },
     });
   };

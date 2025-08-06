@@ -13,6 +13,7 @@
     "@tailwindcss/vite": "^4.1.11",
     "framer-motion": "^12.23.0",
     "lucide": "^0.525.0",
+    "lucide-react": "^0.536.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-icons": "^5.5.0",
@@ -38,5 +39,18 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.34.1",
     "vite": "^7.0.0"
-  }
+  },
+  "description": "> 반려인 산책 도우미 애플리케이션 (React + TypeScript 기반)",
+  "main": ".eslintrc.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Suzi2n/walkmeong.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Suzi2n/walkmeong/issues"
+  },
+  "homepage": "https://github.com/Suzi2n/walkmeong#readme"
 }
