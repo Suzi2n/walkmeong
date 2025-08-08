@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import { MdWaterDrop } from "react-icons/md";
 import { renderToString } from "react-dom/server";
 
@@ -8,21 +8,30 @@ declare global {
   }
 }
 
-const KakaoMap = ({
-  markRequested,
-  onMarkHandled,
-  children,
-  drawingEnabled = true,
-  onDistanceChange,
-  walkId,
-}: {
+interface KakaoMapProps {
   markRequested: boolean;
   onMarkHandled: () => void;
-  children?: React.ReactNode;
+  moveToMyLocationRequested?: boolean;
+  onMoveHandled?: () => void;
+  walkId: string;
   drawingEnabled?: boolean;
   onDistanceChange?: (dist: number) => void;
-  walkId: string;
-}) => {
+  children?: React.ReactNode;
+}
+
+const KakaoMap = forwardRef(function KakaoMap(
+  {
+    markRequested,
+    onMarkHandled,
+    moveToMyLocationRequested,
+    onMoveHandled,
+    walkId,
+    drawingEnabled = true,
+    onDistanceChange,
+    children,
+  }: KakaoMapProps,
+  ref
+) {
   const mapRef = useRef<any>(null);
   const currentPosRef = useRef<{ lat: number; lng: number }>({ lat: 0, lng: 0 });
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number }[]>([]);
@@ -181,7 +190,6 @@ const KakaoMap = ({
 
               const icon = markerContent.querySelector('#lucide-icon') as HTMLElement;
               customOverlay.setPosition(newPos);
-              map.setCenter(newPos);
 
               if (icon && heading !== null && !isNaN(heading) && speed !== null && speed > 0.5) {
                 const smoothed = lastHeading * 0.7 + heading * 0.3;
@@ -281,15 +289,39 @@ const KakaoMap = ({
     return () => clearInterval(interval);*/
   }, [walkId]);
 
+  useEffect(() => {
+    if (moveToMyLocationRequested && mapRef.current) {
+      const { lat, lng } = currentPosRef.current;
+      if (lat !== 0 && lng !== 0) {
+        const pos = new window.kakao.maps.LatLng(lat, lng);
+        mapRef.current.panTo(pos); // ← 내 위치로 부드럽게 이동
+        onMoveHandled?.();
+      }
+    }
+  }, [moveToMyLocationRequested]);
+
+  useImperativeHandle(ref, () => ({
+    moveToMyLocation() {
+      const { lat, lng } = currentPosRef.current;
+      if (lat && lng && mapRef.current) {
+        const pos = new window.kakao.maps.LatLng(lat, lng);
+        mapRef.current.panTo(pos);
+        console.log('📍 지도 중심 이동 완료');
+      }
+    },
+  }));
 
   return (
     <div className="relative w-screen h-screen">
       <div id="map" className="w-full h-full z-0" />
+
+      {/* ✅ 지도 위에 올라가지만 마우스는 통과시키고, 버튼만 클릭 가능 */}
       <div className="absolute top-0 left-0 w-full h-full z-10 pointer-events-none">
         <div className="pointer-events-auto">{children}</div>
       </div>
     </div>
+
   );
-};
+});
 
 export default KakaoMap;

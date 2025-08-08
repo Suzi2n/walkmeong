@@ -9,6 +9,10 @@ const HomePage = () => {
   const [markRequested, setMarkRequested] = useState(false);
   const mapRef = useRef<any>(null);
 
+  const handleMoveToMyLocation = () => {
+    mapRef.current?.moveToMyLocation?.(); // KakaoMap.tsx의 useImperativeHandle에서 정의한 메서드
+  };
+
   const handleMark = () => {
     setMarkRequested(false);
     // 마커 찍고 나서 추가 작업 가능
@@ -19,7 +23,7 @@ const HomePage = () => {
       navigator.geolocation.getCurrentPosition((pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
-        mapRef.current?.moveCenter(lat, lng); // KakaoMap 내부에 moveCenter 구현되어 있어야 작동
+        mapRef.current?.moveToMyLocation?.();
       });
     }
   };
@@ -30,11 +34,11 @@ const HomePage = () => {
         markRequested={markRequested}
         onMarkHandled={handleMark}
         drawingEnabled={false}
-        walkId="dummy-id" // 필요한 경우 실제 값으로 바꿔줘
+        walkId="dummy-id"
         ref={mapRef}
       >
         <LocationButton />
-        <MyLocationButton onClick={moveToCurrentLocation} />
+        <MyLocationButton onClick={handleMoveToMyLocation} />
         <BottomSheet />
       </KakaoMap>
       <StartWalkButton />

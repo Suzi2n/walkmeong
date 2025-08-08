@@ -79,15 +79,19 @@ const Neighborhood_Settings = () => {
         <SlMagnifier className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
 
         {places.length > 0 && (
-          <ul className="absolute z-20 bg-white border border-gray-300 w-full mt-1 rounded-lg shadow-md max-h-48 overflow-auto">
+          <ul className="w-full mt-2 space-y-1">
             {places.map((place, index) => (
               <li
                 key={index}
-                onClick={() => handleSelect(place.road_address_name || place.address_name)}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                onClick={() =>
+                  handleSelect(place.road_address_name || place.address_name)
+                }
+                className="px-1 py-2 border-b border-gray-200"
               >
-                <p className="font-semibold text-sm text-gray-800">{place.road_address_name || place.address_name}</p>
-                <p className="text-xs text-gray-500">{place.address_name}</p>
+                <p className="text-sm font-medium text-black">
+                  {place.road_address_name || place.address_name}
+                </p>
+                <p className="text-xs text-gray-500 mt-2 mb-3">{place.address_name}</p>
               </li>
             ))}
           </ul>

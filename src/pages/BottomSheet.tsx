@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilValue } from 'recoil'; // ✅ Recoil에서 값 읽기
-import { nameState } from '../hooks/animalInfoAtoms'; // ✅ Atom import
+import { useRecoilValue } from 'recoil';
+import { nameState } from '../hooks/animalInfoAtoms';
 
 export default function BottomSheet() {
-  const [expanded, setExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [translateY, setTranslateY] = useState(0);
+  const isDragging = useRef(false);
+  const startY = useRef<number | null>(null);
+  const currentY = useRef<number>(0);
+
   const navigate = useNavigate();
-  const name = useRecoilValue(nameState); // ✅ 이름 불러오기
+  const name = useRecoilValue(nameState);
 
   const courseList = [
     {
@@ -31,27 +36,84 @@ export default function BottomSheet() {
     },
   ];
 
-  const handleStartWalk = () => {
-    navigate('/walk_countdown', { state: { from: 'main' } });
+  // 📱 터치 이벤트
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (startY.current === null) return;
+    const delta = e.touches[0].clientY - startY.current;
+    if (delta > 0 || !isExpanded) {
+      setTranslateY(delta);
+      currentY.current = delta;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (currentY.current > 100) {
+      setIsExpanded(false);
+    } else {
+      setIsExpanded(true);
+    }
+    setTranslateY(0);
+    startY.current = null;
+    currentY.current = 0;
+  };
+
+  // 🖱️ 마우스 이벤트
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    startY.current = e.clientY;
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging.current || startY.current === null) return;
+    const delta = e.clientY - startY.current;
+    if (delta > 0 || !isExpanded) {
+      setTranslateY(delta);
+      currentY.current = delta;
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+    if (currentY.current > 100) {
+      setIsExpanded(false);
+    } else {
+      setIsExpanded(true);
+    }
+    setTranslateY(0);
+    startY.current = null;
+    currentY.current = 0;
+
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
   };
 
   return (
     <div
-      className={`fixed bottom-0 left-0 w-full transition-all duration-300 bg-white rounded-t-2xl shadow-xl z-50 ${expanded ? 'h-[90%]' : 'h-[25%]'
-        }`}
+      className={`fixed bottom-0 left-0 w-full transition-all duration-300 bg-white rounded-t-2xl shadow-xl z-50 ${
+        isExpanded ? 'h-[90%]' : 'h-[25%]'
+      }`}
+      style={{ transform: `translateY(${translateY}px)` }}
     >
-      {/* 드래그 핸들 */}
+      {/* ✅ 드래그 핸들 (여기서만 드래그 감지) */}
       <div
         className="w-12 h-1.5 bg-gray-400 rounded-full mx-auto my-3 cursor-pointer"
-        onClick={() => setExpanded(!expanded)}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
       />
 
       <div className="h-full flex flex-col justify-between">
-        {/* 스크롤 가능한 콘텐츠 */}
         <div className="flex-1 overflow-y-auto px-4">
-          {/* 추천 코스 */}
           <h2 className="text-lg font-semibold mb-2">우리 동네 추천코스</h2>
-          {/* 프로필 + 추천 텍스트 */}
+
           <div className="flex items-center gap-2 mb-4 mt-10">
             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-[#CCCCCC] overflow-hidden">
               <img
@@ -89,8 +151,7 @@ export default function BottomSheet() {
             ))}
           </div>
 
-          {/* 산책일지 */}
-          {expanded && (
+          {isExpanded && (
             <>
               <h2 className="text-md font-semibold mt-4 mb-2">산책일지</h2>
               <div className="space-y-2">
