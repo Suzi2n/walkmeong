@@ -22,16 +22,16 @@ export default function BottomSheet() {
 
   useEffect(() => {
     let isLoading = false;
-    
+
     const loadData = async () => {
       if (isLoading) return;
       isLoading = true;
-      
+
       // 1. 추천 코스 로드 (위치 정보 있으면 사용, 없으면 기본값)
       try {
         const lat = currentLocation?.lat || 37.5665;  // 서울시청 기본값
         const lng = currentLocation?.lng || 126.9780;
-        
+
         const res = await getCourseRecommendations({
           latitude: lat,
           longitude: lng,
@@ -56,7 +56,7 @@ export default function BottomSheet() {
       } catch (e) {
         setCourses([]);
       }
-      
+
       // 2. 산책 기록 로드
       try {
         const res = await getMyWalkRecords({
@@ -78,10 +78,10 @@ export default function BottomSheet() {
         isLoading = false;
       }
     };
-    
+
     // 즉시 실행
     loadData();
-    
+
     return () => {
       isLoading = false;
     };
@@ -174,10 +174,9 @@ export default function BottomSheet() {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 w-full transition-all duration-300 bg-white rounded-t-3xl shadow-lg z-50 ${
-        isExpanded ? 'h-[80vh]' : ''
-      }`}
-      style={{ 
+      className={`fixed bottom-0 left-0 w-full transition-all duration-300 bg-white rounded-t-3xl shadow-lg z-50 ${isExpanded ? 'h-[80vh]' : ''
+        }`}
+      style={{
         transform: `translateY(${translateY}px)`,
         height: isExpanded ? '80vh' : '200px'
       }}
@@ -199,7 +198,10 @@ export default function BottomSheet() {
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-sm">🐕</span>
+                <span
+                  onClick={() => navigate('/my_profile')}
+                  className="text-sm cursor-pointer">🐕
+                </span>
               </div>
               <p className="text-[13px] text-gray-600">
                 <span className="font-medium text-gray-900">{name || '반려견'}</span>를 위한 추천
@@ -238,11 +240,11 @@ export default function BottomSheet() {
                       {course.courseName || course.name || `코스 ${idx + 1}`}
                     </h3>
                     <p className="text-[10px] text-gray-500">
-                      {course.courseLengthMeters 
+                      {course.courseLengthMeters
                         ? formatDistance(course.courseLengthMeters)
                         : course.distanceText || '2.4km'}
-                      {course.estimatedDurationSeconds ? 
-                        ` · ${Math.round(course.estimatedDurationSeconds / 60)}분` : 
+                      {course.estimatedDurationSeconds ?
+                        ` · ${Math.round(course.estimatedDurationSeconds / 60)}분` :
                         course.features?.length ? ` · ${course.features[0]}` : ''}
                     </p>
                   </div>
@@ -259,10 +261,13 @@ export default function BottomSheet() {
           {isExpanded && (
             <div className="mb-5 mt-5">
               <h2 className="text-[15px] font-semibold text-gray-800 mb-3">산책일지</h2>
-              
+
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-sm">🐕</span>
+                  <span
+                    onClick={() => navigate('/my_profile')}
+                    className="text-sm cursor-pointer">🐕
+                  </span>
                 </div>
                 <p className="text-[13px] text-gray-600">
                   <span className="font-medium text-gray-900">{name || '반려견'}</span>의 산책 일지
@@ -303,9 +308,9 @@ export default function BottomSheet() {
                         </h3>
                         <p className="text-[10px] text-gray-500">
                           {(record.end_time || record.start_time) && formatDate(record.end_time || record.start_time)}
-                          {record.distance_meters && 
+                          {record.distance_meters &&
                             ` · ${formatDistance(record.distance_meters)}`}
-                          {record.duration_seconds && 
+                          {record.duration_seconds &&
                             ` · ${formatTime(record.duration_seconds)}`}
                         </p>
                       </div>
